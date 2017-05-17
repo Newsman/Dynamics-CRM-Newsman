@@ -1,0 +1,69 @@
+﻿.tko-group{
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+.tko-label{
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    width: 120px;
+    display: inline-block;
+    margin: 3px;
+    padding: 3px;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.tko-ctrl{
+    display: inline-block;
+    width: 180px;
+    height: 25px;
+    padding: 3px;
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    border: 1px solid #C7C7C7;
+}
+
+.tko-btn{
+    display: inline-block;
+    width: 90px;
+    height: 24px;
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    background: #C7C7C7;
+    border: 1px;
+    vertical-align:central;
+    text-align:center;
+}
+
+.tko-btn:hover{
+    background: #eee;
+    border: 1px outset #C7C7C7;
+    cursor: pointer;
+}
+
+.divider{
+    width:5px;
+    height:10px;
+    display:inline-block;
+}
+
+.tko-ctrl-show{
+    height: 25px;
+    line-height: 25px;
+    margin-bottom: 2px;
+}
+
+.tko-label-show{
+    font-family: Segoe UI,Tahoma,Arial;
+    margin: 3px;
+    padding: 3px;
+    width: 100%;
+    display: inline-block;
+    height: 25px;
+    font-size: 14px;
+    vertical-align: middle;
+    color:darkblue;
+}
