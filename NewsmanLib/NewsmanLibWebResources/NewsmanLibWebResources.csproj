@@ -122,9 +122,6 @@
     <Content Include="resources\SanJSKit - NewsmanAPI.js" />
     <Content Include="resources\SanJSKit.js" />
     <Content Include="scripts\crmsdkjs.js" />
-    <Content Include="scripts\sample.css" />
-    <Content Include="scripts\sample.html" />
-    <Content Include="scripts\sample.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
