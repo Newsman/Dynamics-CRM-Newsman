@@ -19,7 +19,7 @@
     <div class="tko-group">
         <label class="tko-label">Newsman User Id</label>
         <input class="tko-ctrl" data-bind="value: nmUserId, enable: !nmUserIdLoaded()">
-        <button class="tko-btn" data-bind="click: SaveApiInfo, enable: !configSaved">Submit</button>
+        <button class="tko-btn" data-bind="click: SaveApiInfo, enable: !(configSaved())">Submit</button>
     </div>
 
     <div class="divider"></div>
@@ -28,11 +28,11 @@
 
     <div class="tko-group">
         <label class="tko-label">Selected List</label>
-        <select class="tko-ctrl" data-bind="options: nmLists, optionsText: 'list_name', optionsValue: 'list_id', value: nmSelectedList, optionsCaption: 'Select default list', event: {change: SaveDefaultList}, enable: configSaved"></select>
+        <select class="tko-ctrl" data-bind="options: nmLists, optionsText: 'list_name', optionsValue: 'list_id', value: nmSelectedList, optionsCaption: 'Select default list', event: {change: SaveDefaultList}"></select>
     </div>
     <div class="tko-group" style="display:none">
         <label class="tko-label">Selected Segment</label>
-        <select class="tko-ctrl" data-bind="options: nmSegments, optionsText: 'text', optionsValue: 'value', value: nmSelectedSegment, optionsCaption: 'Select default segment', event: {change: SaveDefaultSegment}, enable: configSaved"></select>
+        <select class="tko-ctrl" data-bind="options: nmSegments, optionsText: 'text', optionsValue: 'value', value: nmSelectedSegment, optionsCaption: 'Select default segment', event: {change: SaveDefaultSegment}"></select>
         <button class="tko-btn" data-bind="click: SaveConfig, enable: configSaved">Save Config</button>
     </div>
 </body>
