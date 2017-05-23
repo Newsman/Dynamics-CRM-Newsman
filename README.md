@@ -69,3 +69,7 @@ You can apply a filter on the records set:
 And select the wanted records:
   
   ![advfindadd](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/add_members_advfind.png)
+  
+# License
+
+This code is released under [MIT license](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/LICENSE) by [Newsman App - Smart Email Service Provider](https://www.newsmanapp.com).  
