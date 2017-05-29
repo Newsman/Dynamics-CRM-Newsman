@@ -72,6 +72,13 @@ You can apply a filter on the records set:
 And select the wanted records:
   
   ![advfindadd](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/add_members_advfind.png)
+
+### 3. Manual synchronization
+
+From a marketing list record, click the NEWSMAN SYNC button to sync all members to the related segment from Newsman.
+This action is useful for the second option of Advanced find from above.
+
+  ![manualsync](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/manual_sync.png)
   
 # License
 
