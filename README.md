@@ -4,7 +4,7 @@ Newsman integration module for Microsoft Dymamics CRM (365 / on premise)
 # Installing, configuring and using the connector
 
 ## Download
-Download the zip file from [NewsmanSync_1_0_0_3_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_0_0_3_managed.zip).
+Download the zip file from [NewsmanSync_1_0_0_4_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_0_0_4_managed.zip).
 
 ## Installation
 Access Solutions from the Settings module, in the navigation area:
