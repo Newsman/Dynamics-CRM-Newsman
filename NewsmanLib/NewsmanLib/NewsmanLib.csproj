@@ -41,10 +41,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Crm.Sdk.Proxy">
-      <HintPath>..\..\DynamicsCRMSDK\Bin\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
+      <HintPath>..\..\..\..\crm365sdk\SDK\Bin\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xrm.Sdk">
-      <HintPath>..\..\DynamicsCRMSDK\Bin\Microsoft.Xrm.Sdk.dll</HintPath>
+      <HintPath>..\..\..\..\crm365sdk\SDK\Bin\Microsoft.Xrm.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

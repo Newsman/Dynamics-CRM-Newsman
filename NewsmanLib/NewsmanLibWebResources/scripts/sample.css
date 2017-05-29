@@ -1,0 +1,169 @@
+﻿/* form */
+.tko-group{
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+.ld-add {
+    vertical-align: top;
+    min-height: 35px;
+    margin-left: 10px;
+}
+
+.tko-label{
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    width: 120px;
+    display: inline-block;
+    padding-right: 20px;
+}
+
+.ml-50 {
+    margin-left: 50px;
+}
+
+.ml-100 {
+    margin-left: 100px;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.tko-ctrl{
+    display: inline-block;
+    width: 180px;
+    height: 25px;
+    padding: 3px;
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    border: 1px solid #C7C7C7;
+}
+
+.w100{
+    width: 100px;
+}
+
+.w140{
+    width: 140px;
+}
+
+.w90 {
+    width: 90px;
+}
+
+.tko-btn{
+    display: inline-block;
+    width: 100px;
+    height: 25px;
+    line-height:20px;
+    padding: 5px;
+    font-family: Segoe UI,Tahoma,Arial;
+    font-size: 12px;
+    background: #C7C7C7;
+    border: 0;
+}
+
+.tko-btn:hover{
+    background: #eee;
+    border: 1px outset #C7C7C7;
+    cursor: hover;
+    cursor: pointer;
+}
+/* // form */
+
+
+/* Knockout */
+.tko-wrapper{
+    font-family: Segoe UI,Tahoma,Arial;
+    margin-top: 4px;
+}
+
+.tko-item{
+    margin-bottom: 2px;
+}
+
+.tko-ctrl-show{
+    height: 25px;
+    line-height: 25px;
+    margin-bottom: 2px;
+}
+
+.tko-show{
+    padding: 0;
+    height: 16px;
+    display: inline-block;
+    width: 16px;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.tko-show:hover{
+    cursor: hover;
+    cursor: pointer;
+}
+
+.tko-label-show{
+    font-family: Segoe UI,Tahoma,Arial;
+    margin: 0;
+    padding: 0;
+    width: 110px;
+    display: inline-block;
+    height: 25px;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.tko-btn-add{
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    padding: 2px;
+    font-size: 22px;
+    background: #C7C7C7;
+    border: 0;
+    vertical-align: middle;
+}
+
+.tko-btn-add:hover{
+    background: #eee;
+    border: 1px outset #C7C7C7;
+    cursor: hover;
+    cursor: pointer;
+}
+
+.tko-data{
+    margin-left: 140px;
+}
+
+.tko-data-agg{
+    margin-left: 100px;
+}
+
+.tko-d-head{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    font-size: 12px;
+}
+
+.tko-d-foot{
+    margin-top: 4px;
+}
+
+.tko-d-foot .tko-label{
+    font-family: Segoe UI,Tahoma,Arial;
+    width: 50px;
+}
+
+.tko-d-foot .tko-ctrl{
+    width: 126px;
+    line-height: inherit;
+}
+
+.tko-d-foot .tko-group{
+    margin-bottom: 0;
+}

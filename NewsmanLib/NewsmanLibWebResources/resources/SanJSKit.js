@@ -112,6 +112,7 @@ SanJS.WebAPI = SanJS.WebAPI || {};
 
     this.updateCRMRecordAttribute = function (data, id, set, attName) {
         this.request("PUT", set + "(" + id + ")/" + attName, data);
+        debugger;
     }
 
     this.request = function (action, uri, data, addHeader) {
@@ -166,6 +167,5 @@ SanJS.WebAPI = SanJS.WebAPI || {};
             };
             request.send(JSON.stringify(data));
         });
-    };
-
+    }
 }).call(SanJS.WebAPI);

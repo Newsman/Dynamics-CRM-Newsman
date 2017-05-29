@@ -83,5 +83,103 @@ namespace NewsmanLib
 
             service.Create(log);
         }
+
+        public static List<Subscriber> CreateSubscribers(EntityCollection members)
+        {
+            List<Subscriber> sub = new List<Subscriber>();
+            foreach (Entity member in members.Entities)
+            {
+                if (member.Contains("emailaddress1"))
+                {
+                    sub.Add(new Subscriber()
+                    {
+                        Email = member["emailaddress1"].ToString(),
+                        Firstname = member.Contains("firstname") ? member["firstname"].ToString() : "",
+                        Lastname = member.Contains("lastname") ? member["lastname"].ToString() : member.Contains("name") ? member["name"].ToString() : ""
+                    });
+                }
+            }
+
+            return sub;
+        }
+
+        public static Subscriber[] CreateSubscribers(IOrganizationService service, Guid[] memberIds, string memberType)
+        {
+            List<Subscriber> sub = new List<Subscriber>();
+            ColumnSet cols = null;
+
+            QueryExpression qry = new QueryExpression(memberType);
+            switch (memberType)
+            {
+                case "account":
+                    cols = new ColumnSet("name", "emailaddress1");
+                    break;
+                case "contact":
+                case "lead":
+                    cols = new ColumnSet("firstname", "lastname", "emailaddress1");
+                    break;
+                default:
+                    cols = new ColumnSet(false);
+                    break;
+            }
+            qry.ColumnSet = cols;
+            qry.Criteria = new FilterExpression(LogicalOperator.Or);
+
+            //filter selected members
+            foreach (Guid memberId in memberIds)
+            {
+                qry.Criteria.AddCondition($"{memberType}id", ConditionOperator.Equal, memberId);
+            }
+
+            EntityCollection members = service.RetrieveMultiple(qry);
+
+            foreach (Entity member in members.Entities)
+            {
+                if (member.Contains("emailaddress1"))
+                {
+                    sub.Add(new Subscriber()
+                    {
+                        Email = member["emailaddress1"].ToString(),
+                        Firstname = member.Contains("firstname") ? member["firstname"].ToString() : "",
+                        Lastname = member.Contains("lastname") ? member["lastname"].ToString() : member.Contains("name") ? member["name"].ToString() : ""
+                    });
+                }
+            }
+
+            return sub.ToArray();
+        }
+
+        public static Subscriber CreateSubscriber(IOrganizationService service, Guid memberId, string memberType)
+        {
+            Subscriber sub = null;
+            ColumnSet cols = null;
+
+            switch (memberType)
+            {
+                case "account":
+                    cols = new ColumnSet("name", "emailaddress1");
+                    break;
+                case "contact":
+                case "lead":
+                    cols = new ColumnSet("firstname", "lastname", "emailaddress1");
+                    break;
+                default:
+                    cols = new ColumnSet(false);
+                    break;
+            }
+            Entity member = service.Retrieve(memberType, memberId, cols);
+
+            if (member.Contains("emailaddress1"))
+            {
+                sub = new Subscriber()
+                {
+                    Email = member["emailaddress1"].ToString(),
+                    Firstname = member.Contains("firstname") ? member["firstname"].ToString() : "",
+                    Lastname = member.Contains("lastname") ? member["lastname"].ToString() : member.Contains("name") ? member["name"].ToString() : ""
+                };
+            }
+
+            return sub;
+        }
     }
 }

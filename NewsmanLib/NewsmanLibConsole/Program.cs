@@ -5,8 +5,8 @@ namespace NewsmanLibConsole
 {
     class Program
     {
-        private const string apikey = "35cc3069d40bf3634f37a9c10899c736";
-        private const string userid = "3176";
+        private const string apikey = "demo";
+        private const string userid = "demo";
 
         static void Main(string[] args)
         {

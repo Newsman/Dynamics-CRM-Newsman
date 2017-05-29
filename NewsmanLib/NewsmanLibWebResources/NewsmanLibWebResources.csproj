@@ -100,11 +100,14 @@
   <ItemGroup>
     <Content Include="app\ListSelection\ListSelection.html" />
     <Content Include="app\ListSelection\ListSelection.js" />
+    <Content Include="app\MktList.js" />
     <Content Include="css\styles.css" />
     <Content Include="icons\API Settings-16.png" />
     <Content Include="icons\API Settings-32.png" />
     <Content Include="icons\Log-16.png" />
     <Content Include="icons\Log-32.png" />
+    <Content Include="icons\sync-16.png" />
+    <Content Include="icons\sync-32.png" />
     <Content Include="packages.config" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -122,6 +125,9 @@
     <Content Include="resources\SanJSKit - NewsmanAPI.js" />
     <Content Include="resources\SanJSKit.js" />
     <Content Include="scripts\crmsdkjs.js" />
+    <Content Include="scripts\sample.css" />
+    <Content Include="scripts\sample.html" />
+    <Content Include="scripts\sample.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
