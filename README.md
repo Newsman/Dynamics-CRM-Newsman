@@ -4,7 +4,7 @@ Newsman integration module for Microsoft Dymamics CRM (365 / on premise)
 # Installing, configuring and using the connector
 
 ## Download
-Download the zip file from [NewsmanSync_1_0_0_4_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_0_0_4_managed.zip).
+Download the zip file from [NewsmanSync_1_0_0_5_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_0_0_5_managed.zip).
 
 ## Installation
 Access Solutions from the Settings module, in the navigation area:
@@ -79,6 +79,10 @@ From a marketing list record, click the NEWSMAN SYNC button to sync all members 
 This action is useful for the second option of Advanced find from above.
 
   ![manualsync](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/manual_sync.png)
+  
+## Troubleshooting
+
+Use the Advanced Find (or the target language equivalent) functionality to check for the Newsman Config and Newsman Log entities for current configuration information and events logging.
   
 # License
 
