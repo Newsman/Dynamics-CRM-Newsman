@@ -87,6 +87,8 @@ namespace NewsmanLib.APIHelper
 
         public string ImportSubscribers(string list_id, string segment, List<Subscriber> subscribers)
         {
+            WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultCredentials;
+
             StringBuilder sb = new StringBuilder("email,firstname,lastname");
             sb.AppendLine();
             foreach (Subscriber s in subscribers)
@@ -94,8 +96,19 @@ namespace NewsmanLib.APIHelper
                 sb.AppendLine($"\"{s.Email}\",\"{s.Firstname}\",\"{s.Lastname}\"");
             }
 
-            var response = _client.UploadString($"{_baseUrl}/import.csv.json?list_id={list_id}&segments=[{segment}]&csv_data={sb.ToString()}", "");
-            return response;
+            string responsebody = string.Empty;
+            using (WebClient client = new WebClient())
+            {
+                var reqparm = new System.Collections.Specialized.NameValueCollection();
+                reqparm.Add("list_id", list_id);
+                reqparm.Add("segments", "[" + segment + "]");
+                reqparm.Add("csv_data", sb.ToString());
+
+                byte[] responsebytes = client.UploadValues($"{_baseUrl}/import.csv.json", "POST", reqparm);
+                responsebody = Encoding.UTF8.GetString(responsebytes);
+            }
+
+            return responsebody;
         }
 
         public string ImportSubscribers(string list_id, string segment, Subscriber s)
