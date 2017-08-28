@@ -87,14 +87,16 @@ namespace NewsmanLib
                         #endregion
 
                         #region Send to Newsman
+                        int totalRecordCount = 0;
                         string segment = (string)image.GetValue("nmc_newsmansegmentid");
                         qry.PageInfo = new PagingInfo();
-                        qry.PageInfo.Count = 20;
+                        qry.PageInfo.Count = 5000;
                         qry.PageInfo.PageNumber = 1;
                         qry.PageInfo.PagingCookie = null;
                         qry.PageInfo.ReturnTotalRecordCount = true;
                         EntityCollection members = helper.OrganizationService.RetrieveMultiple(qry);
-                        Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"Found {members.TotalRecordCount.ToString()} record(s)");
+                        Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"First page has {members.TotalRecordCount.ToString()} record(s)");
+                        totalRecordCount += members.TotalRecordCount;
 
                         //first batch
                         api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
@@ -106,8 +108,9 @@ namespace NewsmanLib
                             api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
                             qry.PageInfo.PageNumber++;
                             qry.PageInfo.PagingCookie = members.PagingCookie;
+                            totalRecordCount += members.TotalRecordCount;
                         };
-                        Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", "Check the logs for any errors");
+                        Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", $"Total number of records is {totalRecordCount.ToString("N0")}");
                         #endregion
                     }
                 }

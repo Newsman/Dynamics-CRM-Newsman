@@ -87,8 +87,6 @@ namespace NewsmanLib.APIHelper
 
         public string ImportSubscribers(string list_id, string segment, List<Subscriber> subscribers)
         {
-            WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultCredentials;
-
             StringBuilder sb = new StringBuilder("email,firstname,lastname");
             sb.AppendLine();
             foreach (Subscriber s in subscribers)
