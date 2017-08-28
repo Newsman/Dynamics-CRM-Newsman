@@ -42,74 +42,85 @@ namespace NewsmanLib
         public override void PostUpdate(Entity entity, ConnectionHelper helper)
         {
             Entity image = helper.PluginExecutionContext.PostEntityImages["Image"];
-            Common.LogToCRM(helper.OrganizationService, $"Marketing list sync triggered: {entity.Id.ToString()}", "Update triggered on marketing list record");
-
-            try
+            if (entity.Contains("nmc_syncmembers") &&
+                entity["nmc_syncmembers"] != null &&
+                (bool)entity["nmc_syncmembers"])
             {
-                #region check config params
-                string apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
-                string userid = Common.GetParamValue(helper.OrganizationService, "UserId");
-                string nmList = Common.GetParamValue(helper.OrganizationService, "Default List");
+                Common.LogToCRM(helper.OrganizationService, $"Marketing list sync triggered: {entity.Id.ToString()}", "Update triggered on marketing list record");
 
-                if (apikey == null || userid == null || nmList == null)
-                    return;
-                #endregion
-
-                using (NewsmanAPI api = new NewsmanAPI(apikey, userid))
+                try
                 {
+                    #region check config params
+                    string apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
+                    string userid = Common.GetParamValue(helper.OrganizationService, "UserId");
+                    string nmList = Common.GetParamValue(helper.OrganizationService, "Default List");
 
-                    #region Generate query criteria
-                    int memberTypeCode = image.GetOptionSetValue("createdfromcode");
-                    string memberType = memberTypeCode == 1 ? "account" : (memberTypeCode == 2 ? "contact" : "lead");
-                    QueryExpression qry = new QueryExpression(memberType);
-                    ColumnSet cols = null;
-                    switch (memberType)
-                    {
-                        case "account":
-                            cols = new ColumnSet("name", "emailaddress1");
-                            break;
-                        case "contact":
-                        case "lead":
-                            cols = new ColumnSet("firstname", "lastname", "emailaddress1");
-                            break;
-                        default:
-                            cols = new ColumnSet(false);
-                            break;
-                    }
-                    qry.ColumnSet = cols;
-                    LinkEntity listMember = qry.AddLink("listmember", memberType + "id", "entityid", JoinOperator.Inner);
-                    LinkEntity list = listMember.AddLink("list", "listid", "listid");
-                    list.LinkCriteria.AddCondition("listid", ConditionOperator.Equal, entity.Id);
+                    if (apikey == null || userid == null || nmList == null)
+                        return;
                     #endregion
 
-                    #region Send to Newsman
-                    string segment = (string)image.GetValue("nmc_newsmansegmentid");
-                    qry.PageInfo = new PagingInfo();
-                    qry.PageInfo.Count = 20;
-                    qry.PageInfo.PageNumber = 1;
-                    qry.PageInfo.PagingCookie = null;
-                    qry.PageInfo.ReturnTotalRecordCount = true;
-                    EntityCollection members = helper.OrganizationService.RetrieveMultiple(qry);
-                    Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"Found {members.TotalRecordCount.ToString()} record(s)");
-
-                    //first batch
-                    api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
-
-                    //rest of the batches
-                    while (members.MoreRecords)
+                    using (NewsmanAPI api = new NewsmanAPI(apikey, userid))
                     {
-                        members = helper.OrganizationService.RetrieveMultiple(qry);
+
+                        #region Generate query criteria
+                        int memberTypeCode = image.GetOptionSetValue("createdfromcode");
+                        string memberType = memberTypeCode == 1 ? "account" : (memberTypeCode == 2 ? "contact" : "lead");
+                        QueryExpression qry = new QueryExpression(memberType);
+                        ColumnSet cols = null;
+                        switch (memberType)
+                        {
+                            case "account":
+                                cols = new ColumnSet("name", "emailaddress1");
+                                break;
+                            case "contact":
+                            case "lead":
+                                cols = new ColumnSet("firstname", "lastname", "emailaddress1");
+                                break;
+                            default:
+                                cols = new ColumnSet(false);
+                                break;
+                        }
+                        qry.ColumnSet = cols;
+                        LinkEntity listMember = qry.AddLink("listmember", memberType + "id", "entityid", JoinOperator.Inner);
+                        LinkEntity list = listMember.AddLink("list", "listid", "listid");
+                        list.LinkCriteria.AddCondition("listid", ConditionOperator.Equal, entity.Id);
+                        #endregion
+
+                        #region Send to Newsman
+                        string segment = (string)image.GetValue("nmc_newsmansegmentid");
+                        qry.PageInfo = new PagingInfo();
+                        qry.PageInfo.Count = 20;
+                        qry.PageInfo.PageNumber = 1;
+                        qry.PageInfo.PagingCookie = null;
+                        qry.PageInfo.ReturnTotalRecordCount = true;
+                        EntityCollection members = helper.OrganizationService.RetrieveMultiple(qry);
+                        Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"Found {members.TotalRecordCount.ToString()} record(s)");
+
+                        //first batch
                         api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
-                        qry.PageInfo.PageNumber++;
-                        qry.PageInfo.PagingCookie = members.PagingCookie;
-                    };
-                    Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", "Check the logs for any errors");
-                    #endregion
+
+                        //rest of the batches
+                        while (members.MoreRecords)
+                        {
+                            members = helper.OrganizationService.RetrieveMultiple(qry);
+                            api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
+                            qry.PageInfo.PageNumber++;
+                            qry.PageInfo.PagingCookie = members.PagingCookie;
+                        };
+                        Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", "Check the logs for any errors");
+                        #endregion
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Common.LogToCRM(helper.OrganizationService, $"Error syncing list members for {(string)image["listname"]}", $"Error message:{ex.Message}, stack trace: {ex.StackTrace}");
+                catch (Exception ex)
+                {
+                    Common.LogToCRM(helper.OrganizationService, $"Error syncing list members for {(string)image["listname"]}", $"Error message:{ex.Message}, stack trace: {ex.StackTrace}");
+                }
+                finally
+                {
+                    Entity resetList = new Entity(entity.LogicalName, entity.Id);
+                    resetList.Attributes["nmc_syncmembers"] = false;
+                    helper.OrganizationService.Update(resetList);
+                }
             }
         }
     }

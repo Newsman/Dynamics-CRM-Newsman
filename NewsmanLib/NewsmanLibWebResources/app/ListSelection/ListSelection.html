@@ -14,12 +14,12 @@
 
 	<div class="tko-group">
 		<label class="tko-label">Newsman Api Key</label>
-		<input class="tko-ctrl" data-bind="value: nmApiKey, enable: !nmApiKeyLoaded()" >
+		<input class="tko-ctrl" data-bind="value: nmApiKey" >
     </div>
     <div class="tko-group">
         <label class="tko-label">Newsman User Id</label>
-        <input class="tko-ctrl" data-bind="value: nmUserId, enable: !nmUserIdLoaded()">
-        <button class="tko-btn" data-bind="click: SaveApiInfo, enable: !(configSaved())">Submit</button>
+        <input class="tko-ctrl" data-bind="value: nmUserId">
+        <button class="tko-btn" data-bind="click: SaveApiInfo">Submit</button>
     </div>
 
     <div class="divider"></div>

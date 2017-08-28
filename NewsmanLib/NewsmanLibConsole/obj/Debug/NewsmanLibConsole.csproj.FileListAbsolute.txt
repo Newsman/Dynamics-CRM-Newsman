@@ -1,0 +1,12 @@
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\NewsmanLibConsole.exe.config
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\NewsmanLibConsole.exe
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\NewsmanLibConsole.pdb
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\NewsmanLib.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Sdk.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Crm.Sdk.Proxy.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\NewsmanLib.pdb
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Sdk.xml
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Crm.Sdk.Proxy.xml
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.csprojResolveAssemblyReference.cache
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.exe
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.pdb
