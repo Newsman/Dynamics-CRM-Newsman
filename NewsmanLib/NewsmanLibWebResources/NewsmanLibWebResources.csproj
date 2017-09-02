@@ -104,8 +104,15 @@
     <Content Include="css\styles.css" />
     <Content Include="icons\API Settings-16.png" />
     <Content Include="icons\API Settings-32.png" />
+    <Content Include="icons\Bounce.png" />
+    <Content Include="icons\History-16.png" />
+    <Content Include="icons\History-32.png" />
     <Content Include="icons\Log-16.png" />
     <Content Include="icons\Log-32.png" />
+    <Content Include="icons\Newsletter-16.png" />
+    <Content Include="icons\Newsletter-32.png" />
+    <Content Include="icons\Send.png" />
+    <Content Include="icons\Subscribe.png" />
     <Content Include="icons\sync-16.png" />
     <Content Include="icons\sync-32.png" />
     <Content Include="packages.config" />
@@ -125,6 +132,7 @@
     <Content Include="resources\SanJSKit - NewsmanAPI.js" />
     <Content Include="resources\SanJSKit.js" />
     <Content Include="scripts\crmsdkjs.js" />
+    <Content Include="scripts\NewsletterMain.js" />
     <Content Include="scripts\sample.css" />
     <Content Include="scripts\sample.html" />
     <Content Include="scripts\sample.js" />

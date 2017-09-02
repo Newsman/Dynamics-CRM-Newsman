@@ -56,7 +56,10 @@ namespace NewsmanLib
                     string nmList = Common.GetParamValue(helper.OrganizationService, "Default List");
 
                     if (apikey == null || userid == null || nmList == null)
+                    {
+                        Common.LogToCRM(helper.OrganizationService, $"Marketing list sync ignored: {entity.Id.ToString()}", "Missing Newsman API configuration!");
                         return;
+                    }
                     #endregion
 
                     using (NewsmanAPI api = new NewsmanAPI(apikey, userid))
@@ -87,6 +90,8 @@ namespace NewsmanLib
                         #endregion
 
                         #region Send to Newsman
+                        StringBuilder importIDs = new StringBuilder();
+                     
                         int totalRecordCount = 0;
                         string segment = (string)image.GetValue("nmc_newsmansegmentid");
                         qry.PageInfo = new PagingInfo();
@@ -95,22 +100,24 @@ namespace NewsmanLib
                         qry.PageInfo.PagingCookie = null;
                         qry.PageInfo.ReturnTotalRecordCount = true;
                         EntityCollection members = helper.OrganizationService.RetrieveMultiple(qry);
-                        Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"First page has {members.TotalRecordCount.ToString()} record(s)");
+                        Common.LogToCRM(helper.OrganizationService, $"Started synchronization for {(string)image["listname"]}", $"First page has {members.TotalRecordCount.ToString("N0")} record(s)");
                         totalRecordCount += members.TotalRecordCount;
 
                         //first batch
-                        api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
+                        string importId = api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
+                        importIDs.Append($"{importId};");
 
                         //rest of the batches
                         while (members.MoreRecords)
                         {
                             members = helper.OrganizationService.RetrieveMultiple(qry);
-                            api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
+                            importId = api.ImportSubscribers(nmList, segment, Common.CreateSubscribers(members));
+                            importIDs.Append($"{importId};");
                             qry.PageInfo.PageNumber++;
                             qry.PageInfo.PagingCookie = members.PagingCookie;
                             totalRecordCount += members.TotalRecordCount;
                         };
-                        Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", $"Total number of records is {totalRecordCount.ToString("N0")}");
+                        Common.LogToCRM(helper.OrganizationService, $"Finished synchronization for {(string)image["listname"]}", $"Total number of records is: {totalRecordCount.ToString("N0")}. List of generated Newsman import ids: {importIDs.ToString()}");
                         #endregion
                     }
                 }

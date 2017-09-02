@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 using NewsmanLib.APIHelper;
 using System.Web.Script.Serialization;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace NewsmanLib
 {
     public class NewsmanConfig : PluginBase
     {
+        #region Overrides
         public override void PostCreate(Entity entity, ConnectionHelper helper)
         {
             if (entity.Contains("nmc_name") &&
@@ -34,7 +36,7 @@ namespace NewsmanLib
                 }
 
                 if (apikey == null || userid == null)
-                    return; 
+                    return;
                 #endregion
 
                 //create newsman api instance
@@ -49,7 +51,7 @@ namespace NewsmanLib
                     helper.OrganizationService.Create(listsParam);
 
                     //log
-                    Common.LogToCRM(helper.OrganizationService, $"Created Newsman Config parameter for retrieved lists", 
+                    Common.LogToCRM(helper.OrganizationService, $"Created Newsman Config parameter for retrieved lists",
                         listsParam.Attributes["nmc_value"].ToString());
                 }
                 else
@@ -67,15 +69,217 @@ namespace NewsmanLib
 
         public override void PostUpdate(Entity entity, ConnectionHelper helper)
         {
+            //initialize process timer
+            DateTime startProcessingTime = DateTime.Now;
+            int totalSeconds = 110;
+            int nmcPageCount = 1000;
+
             Entity image = helper.PluginExecutionContext.PostEntityImages.Contains("Image") ?
                 helper.PluginExecutionContext.PostEntityImages["Image"] : entity;
 
             string name = (string)image.GetValue("nmc_name", image);
-            if (name == "Default List")
+
+            #region Retrieve history
+            if (entity.Contains("nmc_nextrunon") && name == "ApiKey")
             {
-                //reload segments
-                //..
+                #region check config params
+                string apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
+                string userid = Common.GetParamValue(helper.OrganizationService, "UserId");
+                string defaultList = Common.GetParamValue(helper.OrganizationService, "Default List");
+
+                if (apikey == null || userid == null || defaultList == null)
+                {
+                    Common.LogToCRM(helper.OrganizationService, "History retrieve attempt failed. Missing configuration parameters", "");
+                    return;
+                }
+                #endregion
+
+                //create newsman api instance
+                NewsmanAPI nmapi = new NewsmanAPI(apikey, userid);
+
+                //retrieve last history timestamp
+                string lastTimestamp = RetrieveLastTimestamp(helper.OrganizationService);
+                double dblTimestamp = lastTimestamp != null ? Convert.ToDouble(lastTimestamp) : (double)0;
+                Common.LogToCRM(helper.OrganizationService, $"Attempting history retrieve with list_id {defaultList}, count {nmcPageCount} and timestamp {0}", 
+                    $"Current last timestamp is {dblTimestamp}");
+
+                //initialize duplicate detection collection
+                EntityCollection crtRecords = RetrieveAllCurrentHistory(helper.OrganizationService);
+
+                try
+                {
+                    //first page
+                    var history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, "0");
+                    double crtTimestamp = 0;
+
+                    while (true)
+                    {
+                        //break loop when no other records are returned
+                        if (history.Count == 0)
+                            break;
+
+                        for (int i = 0; i < history.Count; i++)
+                        {
+                            #region Check timer
+                            //break loop before CRM plugin times out
+                            if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
+                                break;
+                            #endregion
+
+                            //get next record
+                            var record = history[i];
+
+                            //save checkpoint for the next history retrieval
+                            crtTimestamp = Convert.ToDouble(history[i].timestamp);
+
+                            if (RecordExists(crtRecords, record))
+                                continue;
+
+                            #region Newsletter information
+                            EntityReference newsletter = GetEntityReference(helper.OrganizationService, record.newsletter_id, "nmc_newsmannewsletter");
+                            if (newsletter == null)
+                            {
+                                //create newsletter record
+                                Entity nl = new Entity("nmc_newsmannewsletter");
+                                nl.Attributes.Add("nmc_subject", record.newsletter_subject);
+                                nl.Attributes.Add("nmc_newsletterid", record.newsletter_id);
+                                nl.Attributes.Add("nmc_newsletterlink", NewsmanDefaults.NewsletterLink(defaultList, record.newsletter_id));
+                                Guid nlId = helper.OrganizationService.Create(nl);
+
+                                newsletter = new EntityReference("nmc_newsmannewsletter", nlId);
+                            }
+                            #endregion
+
+                            #region Create history
+                            Entity nmHistoryRec = new Entity("nmc_newsmanhistory");
+                            nmHistoryRec.Attributes["nmc_date"] = record.date;
+                            nmHistoryRec.Attributes["nmc_action"] = record.action;
+                            nmHistoryRec.Attributes["nmc_subscriberid"] = record.subscriber_id;
+                            nmHistoryRec.Attributes["nmc_timestamp"] = record.timestamp;
+                            nmHistoryRec.Attributes["nmc_datetime"] = ConvertTimestamp(record.timestamp);
+                            nmHistoryRec.Attributes["nmc_contactid"] = GetEntityReference(helper.OrganizationService, record.email, "contact");
+                            nmHistoryRec.Attributes["nmc_newsletterid"] = newsletter;
+
+                            helper.OrganizationService.Create(nmHistoryRec);
+                            #endregion
+
+                            #region Check timer
+                            //break loop before CRM plugin times out
+                            if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
+                                break;
+                            #endregion
+                        }
+
+
+                        #region Check timer
+                        //break loop before CRM plugin times out
+                        if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
+                        {
+                            Common.LogToCRM(helper.OrganizationService, "History records creating loop break caused by forced timeout",
+                                $"Last processed timestamp is: {crtTimestamp}");
+                            break;
+                        } 
+                        #endregion
+
+                        //next pages
+                        history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, crtTimestamp.ToString());
+                    }
+                }
+                catch (Exception e)
+                {
+                    Common.LogToCRM(helper.OrganizationService, "Exception creating history records", e.Message + " // " + e.StackTrace);
+                }
             }
+            #endregion
         }
+
+        #endregion
+
+        #region Methods
+        private bool RecordExists(EntityCollection list, ListHistory item)
+        {
+            return list.Entities.Any(i => (i.Contains("nmc_subscriberid") && (string)i["nmc_subscriberid"] == item.subscriber_id) &&
+                (i.Contains("nmc_action") && (string)i["nmc_action"] == item.action) &&
+                (i.Contains("nmc_timestamp") && (string)i["nmc_timestamp"] == item.timestamp));
+        }
+
+        private EntityCollection RetrieveAllCurrentHistory(IOrganizationService service)
+        {
+            EntityCollection allhistoryRecords = new EntityCollection();
+
+            QueryExpression qry = new QueryExpression("nmc_newsmanhistory");
+            qry.NoLock = true;
+            qry.ColumnSet = new ColumnSet("nmc_subscriberid", "nmc_action", "nmc_timestamp");
+            qry.Criteria.AddCondition("nmc_datetime", ConditionOperator.Last7Days);
+            qry.PageInfo = new PagingInfo();
+            qry.PageInfo.Count = 5000;
+            qry.PageInfo.PageNumber = 1;
+            qry.PageInfo.PagingCookie = null;
+
+            while (true)
+            {
+                EntityCollection results = service.RetrieveMultiple(qry);
+                allhistoryRecords.Entities.AddRange(results.Entities);
+
+                if (results.MoreRecords)
+                {
+                    qry.PageInfo.PageNumber++;
+                    qry.PageInfo.PagingCookie = results.PagingCookie;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return allhistoryRecords;
+        }
+
+        private EntityReference GetEntityReference(IOrganizationService service, string searchField, string entityType)
+        {
+            EntityReference lookup = null;
+            QueryByAttribute qry = new QueryByAttribute(entityType);
+            qry.ColumnSet = new ColumnSet();
+            qry.TopCount = 1;
+
+            switch (entityType)
+            {
+                case "contact":
+                    qry.AddAttributeValue("emailaddress1", searchField);
+                    break;
+                default:
+                    qry.AddAttributeValue("nmc_newsletterid", searchField);
+                    break;
+            }
+
+            Entity lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
+            if (lk != null)
+                lookup = lk.ToEntityReference();
+
+            return lookup;
+        }
+
+        private DateTime ConvertTimestamp(string timestamp)
+        {
+            double dTimeStamp = Convert.ToDouble(timestamp);
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            return dtDateTime.AddSeconds(dTimeStamp);
+        }
+
+        private string RetrieveLastTimestamp(IOrganizationService service)
+        {
+            QueryExpression qry = new QueryExpression("nmc_newsmanhistory");
+            qry.ColumnSet = new ColumnSet("nmc_timestamp");
+            qry.Orders.Add(new OrderExpression("nmc_timestamp", OrderType.Ascending));
+            qry.TopCount = 1;
+            Entity last = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
+            if (last != null && last.Contains("nmc_timestamp"))
+            {
+                return last["nmc_timestamp"].ToString();
+            }
+
+            return null;
+        } 
+        #endregion
     }
 }

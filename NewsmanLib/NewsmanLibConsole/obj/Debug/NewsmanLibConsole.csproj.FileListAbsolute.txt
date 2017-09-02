@@ -10,3 +10,9 @@ D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.C
 D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.csprojResolveAssemblyReference.cache
 D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.exe
 D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\obj\Debug\NewsmanLibConsole.pdb
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Tooling.Connector.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.IdentityModel.Clients.ActiveDirectory.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Sdk.Deployment.dll
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Tooling.Connector.xml
+D:\Personal\newsman\Community\NewsmanLib\NewsmanLibConsole\bin\Debug\Microsoft.Xrm.Sdk.Deployment.xml

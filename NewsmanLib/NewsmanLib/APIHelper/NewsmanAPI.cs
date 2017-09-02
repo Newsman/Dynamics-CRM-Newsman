@@ -95,16 +95,13 @@ namespace NewsmanLib.APIHelper
             }
 
             string responsebody = string.Empty;
-            using (WebClient client = new WebClient())
-            {
-                var reqparm = new System.Collections.Specialized.NameValueCollection();
-                reqparm.Add("list_id", list_id);
-                reqparm.Add("segments", "[" + segment + "]");
-                reqparm.Add("csv_data", sb.ToString());
+            var reqparm = new System.Collections.Specialized.NameValueCollection();
+            reqparm.Add("list_id", list_id);
+            reqparm.Add("segments", "[" + segment + "]");
+            reqparm.Add("csv_data", sb.ToString());
 
-                byte[] responsebytes = client.UploadValues($"{_baseUrl}/import.csv.json", "POST", reqparm);
-                responsebody = Encoding.UTF8.GetString(responsebytes);
-            }
+            byte[] responsebytes = _client.UploadValues($"{_baseUrl}/import.csv.json", "POST", reqparm);
+            responsebody = Encoding.UTF8.GetString(responsebytes);
 
             return responsebody;
         }
@@ -122,11 +119,46 @@ namespace NewsmanLib.APIHelper
             return _client.UploadString($"{_baseUrl}/import.status.json?import_id={import_id}", "");
         }
 
+        public List<ListHistory> RetrieveListHistory(string list_id, int count, string timestamp)
+        {
+            StringBuilder trace = new StringBuilder();
+            List<ListHistory> data = new List<ListHistory>();
+            try
+            {
+                var response = _client.DownloadString($"{_baseUrl}/list.subscribersHistory.json?list_id={list_id}&count={count}&before_timestamp={timestamp}");
+                trace.AppendLine("downloading string..");
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<ListHistory>));
+                    StreamWriter writer = new StreamWriter(ms);
+                    writer.Write(response);
+                    writer.Flush();
+
+                    ms.Position = 0;
+                    data = (List<ListHistory>)serializer.ReadObject(ms);
+                }
+                trace.AppendLine("return response");
+                return data;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"URI: {_baseUrl}/list.subscribersHistory.json?list_id={list_id}&count={count}&before_timestamp={timestamp}; trace: {trace.ToString()}; message: {e.Message}", e);
+            }
+        }
+
         #region Interface
         public void Dispose()
         {
             ((IDisposable)_client).Dispose();
-        } 
+        }
         #endregion
+    }
+
+    public static class NewsmanDefaults
+    {
+        public static string NewsletterLink(string list_id, string newsletter_id)
+        {
+            return $"https://ssl.newsman.ro/admin/newsletter/details/list_id/{list_id}/newsletter_id/{newsletter_id}";
+        }
     }
 }

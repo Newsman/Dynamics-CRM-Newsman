@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,5 +43,24 @@ namespace NewsmanLib.APIHelper
     {
         public string list_name { get; set; }
         public string list_id { get; set; }
+    }
+
+    [DataContract]
+    public class ListHistory
+    {
+        [DataMember]
+        public string subscriber_id { get; set; }
+        [DataMember]
+        public string email { get; set; }
+        [DataMember]
+        public string newsletter_id { get; set; }
+        [DataMember]
+        public string newsletter_subject { get; set; }
+        [DataMember]
+        public string date { get; set; }
+        [DataMember]
+        public string action { get; set; }
+        [DataMember]
+        public string timestamp { get; set; }
     }
 }
