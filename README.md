@@ -83,6 +83,21 @@ This action is useful for the second option of Advanced find from above.
 ## Troubleshooting
 
 Use the Advanced Find (or the target language equivalent) functionality to check for the Newsman Config and Newsman Log entities for current configuration information and events logging.
+
+## History Updates
+
+Using the default list and the configuration parameters for ApiKey and UserId, the new version of the plugin will try to retrieve the history information of all the subscribers found in Newsman and link it to the Dynamics CRM contacts.
+
+### 1. Custom entities used
+
+The following new custom entities will hold the history information:
+- Newsman History: this entity will be available from the Contact entity new form (selectable in the header) and it will display the actions performed on each specific subscriber
+- Newsman Newsletter: this entity synchronizes the base Newsletter information specific to all imported history records
+
+### 2. Workflow
+
+In order for the history to be retrieved, there is an automated workflow which starts when a new configuration parameter for the ApiKey is created. This means that if you already have a set of configuration parameters available in the system it is best to delete them all before installing the new version.
+This workflow will periodically trigger itself in order to automatically check for new history records connected to the specified Newsman account (UserId, ApiKey and Default List)
   
 # License
 
