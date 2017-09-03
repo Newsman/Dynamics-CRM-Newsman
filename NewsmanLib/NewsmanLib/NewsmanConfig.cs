@@ -105,9 +105,6 @@ namespace NewsmanLib
 
         public override void PostUpdate(Entity entity, ConnectionHelper helper)
         {
-            if (helper.PluginExecutionContext.Depth > 1)
-                return;
-
             //initialize process timer
             DateTime startProcessingTime = DateTime.Now;
             int totalSeconds = 110;
@@ -117,17 +114,6 @@ namespace NewsmanLib
                 helper.PluginExecutionContext.PostEntityImages["Image"] : entity;
 
             string name = (string)image.GetValue("nmc_name", image);
-
-            #region Update config params
-
-            //if param value changes, reset available lists
-            if ((name == "ApiKey" || name == "UserId") && 
-                entity.Contains("nmc_value") && entity["nmc_value"] != null)
-            {
-                PostCreate(image, helper);
-            }
-
-            #endregion
 
             #region Retrieve history
             if (entity.Contains("nmc_nextrunon") && name == "ApiKey")

@@ -67,6 +67,7 @@
     <Compile Include="NewsmanConfig.cs" />
     <Compile Include="PluginBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResetConfig.cs" />
     <Compile Include="Tester.cs" />
   </ItemGroup>
   <ItemGroup>

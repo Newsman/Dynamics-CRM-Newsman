@@ -96,7 +96,7 @@ var NMConfigViewModel = function () {
             }
         }
 
-        refreshPage();
+        location.reload();
     }
 
     self.SaveConfig = function () {
@@ -137,13 +137,4 @@ function retrieveCRMConfiguration() {
     vmInfo.uidConfig = resp ? resp.nmc_value : null;
 
     return vmInfo;
-}
-
-function refreshPage() {
-    // Get the link object to simulate user click
-    var reload = document.getElementById('reload');
-
-    // Assign the modal url to the link then click!
-    reload.href = window.location.href;
-    reload.click();
 }
