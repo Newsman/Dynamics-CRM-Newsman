@@ -92,7 +92,7 @@ Use the Advanced Find (or the target language equivalent) functionality to check
 Using the default list and the configuration parameters for ApiKey and UserId, the new version of the plugin will try to retrieve the history information of all the subscribers found in Newsman and link it to the Dynamics CRM contacts.
 
 This is how you can access the history information related to a specific contact:
-  ![contacthistory](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/contacthistory.png)
+  ![contacthistory](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/ContactHistory.png)
 
 ### 1. Custom entities used
 
