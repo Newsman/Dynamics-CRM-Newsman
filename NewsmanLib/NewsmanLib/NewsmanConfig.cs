@@ -15,60 +15,99 @@ namespace NewsmanLib
         #region Overrides
         public override void PostCreate(Entity entity, ConnectionHelper helper)
         {
-            if (entity.Contains("nmc_name") &&
-                (entity["nmc_name"].ToString() == "ApiKey" || entity["nmc_name"].ToString() == "UserId"))
+            try
             {
-                #region check config params
-                string apikey = null;
-                string userid = null;
-                Entity nmLists = Common.GetParamEntity(helper.OrganizationService, "Newsman Lists");
-
-                if (entity["nmc_name"].ToString() == "ApiKey")
+                if (entity.Contains("nmc_name") &&
+                    (entity["nmc_name"].ToString() == "ApiKey" || entity["nmc_name"].ToString() == "UserId"))
                 {
-                    apikey = entity["nmc_value"].ToString();
-                    userid = Common.GetParamValue(helper.OrganizationService, "UserId");
+                    #region check config params
+                    string apikey = null;
+                    string userid = null;
+                    Entity nmLists = Common.GetParamEntity(helper.OrganizationService, "Newsman Lists");
+                    Entity defaultList = Common.GetParamEntity(helper.OrganizationService, "Default List");
+
+                    if (entity["nmc_name"].ToString() == "ApiKey")
+                    {
+                        apikey = entity["nmc_value"].ToString();
+                        userid = Common.GetParamValue(helper.OrganizationService, "UserId");
+                    }
+
+                    if (entity["nmc_name"].ToString() == "UserId")
+                    {
+                        userid = entity["nmc_value"].ToString();
+                        apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
+                    }
+
+                    if (apikey == null || userid == null)
+                        return;
+                    #endregion
+
+                    //create newsman api instance
+                    NewsmanAPI nmapi = new NewsmanAPI(apikey, userid);
+                    string listInformation = null;
+
+                    helper.TracingService.Trace("Retrieving lists");
+                    try
+                    {
+                        listInformation = nmapi.RetrieveListsJson();
+                    }
+                    catch (Exception e)
+                    {
+                        Common.LogToCRM(helper.OrganizationService, $"Exception when retrieving Newsman lists",
+                            $"Message: {e.Message} // Stack trace: {e.StackTrace}");
+                    }
+                    helper.TracingService.Trace("Retrieved");
+
+                    if (nmLists == null)
+                    {
+                        //create lists config param
+                        Entity listsParam = new Entity("nmc_newsmanconfig");
+                        listsParam.Attributes["nmc_name"] = "Newsman Lists";
+                        listsParam.Attributes["nmc_value"] = listInformation;
+
+                        helper.TracingService.Trace("Create params");
+                        helper.OrganizationService.Create(listsParam);
+
+                        if (listInformation != null)
+                        {
+                            Common.LogToCRM(helper.OrganizationService, $"Created Newsman Config parameter for retrieved lists",
+                                listsParam.Attributes["nmc_value"].ToString());
+                        }
+                    }
+                    else
+                    {
+                        //update lists config param
+                        nmLists.Attributes["nmc_value"] = listInformation;
+
+                        helper.TracingService.Trace("Update params");
+                        helper.OrganizationService.Update(nmLists);
+
+                        if (listInformation != null)
+                        {
+                            Common.LogToCRM(helper.OrganizationService, $"Updated Newsman Config parameter for retrieved lists",
+                                nmLists.Attributes["nmc_value"].ToString());
+                        }
+                    }
+
+                    //reset Default List when modifying apikey
+                    if (listInformation == null && defaultList != null)
+                    {
+                        defaultList.Attributes["nmc_value"] = null;
+                        helper.OrganizationService.Update(defaultList);
+                    }
                 }
-
-                if (entity["nmc_name"].ToString() == "UserId")
-                {
-                    userid = entity["nmc_value"].ToString();
-                    apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
-                }
-
-                if (apikey == null || userid == null)
-                    return;
-                #endregion
-
-                //create newsman api instance
-                NewsmanAPI nmapi = new NewsmanAPI(apikey, userid);
-
-                if (nmLists == null)
-                {
-                    //create lists config param
-                    Entity listsParam = new Entity("nmc_newsmanconfig");
-                    listsParam.Attributes["nmc_name"] = "Newsman Lists";
-                    listsParam.Attributes["nmc_value"] = nmapi.RetrieveListsJson();
-                    helper.OrganizationService.Create(listsParam);
-
-                    //log
-                    Common.LogToCRM(helper.OrganizationService, $"Created Newsman Config parameter for retrieved lists",
-                        listsParam.Attributes["nmc_value"].ToString());
-                }
-                else
-                {
-                    //update lists config param
-                    nmLists.Attributes["nmc_value"] = nmapi.RetrieveListsJson();
-                    helper.OrganizationService.Update(nmLists);
-
-                    //log
-                    Common.LogToCRM(helper.OrganizationService, $"Updated Newsman Config parameter for retrieved lists",
-                        nmLists.Attributes["nmc_value"].ToString());
-                }
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
 
         public override void PostUpdate(Entity entity, ConnectionHelper helper)
         {
+            if (helper.PluginExecutionContext.Depth > 1)
+                return;
+
             //initialize process timer
             DateTime startProcessingTime = DateTime.Now;
             int totalSeconds = 110;
@@ -78,6 +117,17 @@ namespace NewsmanLib
                 helper.PluginExecutionContext.PostEntityImages["Image"] : entity;
 
             string name = (string)image.GetValue("nmc_name", image);
+
+            #region Update config params
+
+            //if param value changes, reset available lists
+            if ((name == "ApiKey" || name == "UserId") && 
+                entity.Contains("nmc_value") && entity["nmc_value"] != null)
+            {
+                PostCreate(image, helper);
+            }
+
+            #endregion
 
             #region Retrieve history
             if (entity.Contains("nmc_nextrunon") && name == "ApiKey")
@@ -100,7 +150,7 @@ namespace NewsmanLib
                 //retrieve last history timestamp
                 string lastTimestamp = RetrieveLastTimestamp(helper.OrganizationService);
                 double dblTimestamp = lastTimestamp != null ? Convert.ToDouble(lastTimestamp) : (double)0;
-                Common.LogToCRM(helper.OrganizationService, $"Attempting history retrieve with list_id {defaultList}, count {nmcPageCount} and timestamp {0}", 
+                Common.LogToCRM(helper.OrganizationService, $"Attempting history retrieve with list_id {defaultList}, count {nmcPageCount} and timestamp {0}",
                     $"Current last timestamp is {dblTimestamp}");
 
                 //initialize duplicate detection collection
@@ -178,7 +228,7 @@ namespace NewsmanLib
                             Common.LogToCRM(helper.OrganizationService, "History records creating loop break caused by forced timeout",
                                 $"Last processed timestamp is: {crtTimestamp}");
                             break;
-                        } 
+                        }
                         #endregion
 
                         //next pages
@@ -279,7 +329,7 @@ namespace NewsmanLib
             }
 
             return null;
-        } 
+        }
         #endregion
     }
 }

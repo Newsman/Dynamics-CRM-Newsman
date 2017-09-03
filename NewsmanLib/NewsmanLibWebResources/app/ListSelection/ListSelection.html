@@ -6,20 +6,20 @@
 	<script src="../../resources/knockout342min.js" type="text/javascript"> </script>
 	<script src="../../resources/SanJSKit.js" type="text/javascript"> </script>
 	<script src="../ListSelection/ListSelection.js" type="text/javascript"> </script>
-	<meta>
-	<meta>
+	
+    <base target="_self" />
 </head>
 <body style="word-wrap: break-word; overflow: hidden">
     <label class="tko-label-show bold">Newsman configuration information</label>
 
 	<div class="tko-group">
 		<label class="tko-label">Newsman Api Key</label>
-		<input class="tko-ctrl" data-bind="value: nmApiKey, enable: !nmApiKeyLoaded()" >
+		<input class="tko-ctrl" data-bind="value: nmApiKey" >
     </div>
     <div class="tko-group">
         <label class="tko-label">Newsman User Id</label>
-        <input class="tko-ctrl" data-bind="value: nmUserId, enable: !nmUserIdLoaded()">
-        <button class="tko-btn" data-bind="click: SaveApiInfo, enable: !(configSaved())">Submit</button>
+        <input class="tko-ctrl" data-bind="value: nmUserId">
+        <button class="tko-btn" data-bind="click: SaveApiInfo">Submit</button>
     </div>
 
     <div class="divider"></div>
@@ -29,11 +29,13 @@
     <div class="tko-group">
         <label class="tko-label">Selected List</label>
         <select class="tko-ctrl" data-bind="options: nmLists, optionsText: 'list_name', optionsValue: 'list_id', value: nmSelectedList, optionsCaption: 'Select default list', event: {change: SaveDefaultList}"></select>
+        <button class="tko-btn" data-bind="click: SaveApiInfo">Save&Reload</button>
     </div>
     <div class="tko-group" style="display:none">
         <label class="tko-label">Selected Segment</label>
         <select class="tko-ctrl" data-bind="options: nmSegments, optionsText: 'text', optionsValue: 'value', value: nmSelectedSegment, optionsCaption: 'Select default segment', event: {change: SaveDefaultSegment}"></select>
         <button class="tko-btn" data-bind="click: SaveConfig, enable: configSaved">Save Config</button>
     </div>
+    <a id="reload" style="display:none" /a>
 </body>
 </html>

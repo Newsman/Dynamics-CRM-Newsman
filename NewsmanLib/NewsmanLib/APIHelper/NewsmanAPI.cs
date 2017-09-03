@@ -47,7 +47,7 @@ namespace NewsmanLib.APIHelper
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"{_baseUrl}/list.all.json", ex);
+                throw new InvalidOperationException(ex.Message);
             }
         }
 

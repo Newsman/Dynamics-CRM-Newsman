@@ -73,25 +73,6 @@ SanJS.WebAPI = SanJS.WebAPI || {};
         }
     }
 
-    this.getRecordIdFromQueryString = function () {
-        var qry = location.search;
-        if (qry != "") {
-            vals = qry.substr(1).split("&");
-            for (var i in vals) {
-                vals[i] = vals[i].replace(/\+/g, " ").split("=");
-            }
-            //look for the parameter named 'id'
-            var found = false;
-            for (var i in vals) {
-                if (vals[i][0].toLowerCase() == "id") {
-                    return vals[i][1];
-                    break;
-                }
-            }
-        }
-        return null;
-    }
-
     this.getCRMRecordsData = function (set, atts, filter) {
         var req = new XMLHttpRequest();
         req.open("GET", encodeURI(this.getWebAPIPath() + set + "?$select=" + atts + "&$filter=" + filter), false);
@@ -102,70 +83,62 @@ SanJS.WebAPI = SanJS.WebAPI || {};
         return JSON.parse(req.responseText).value;
     }
 
-    this.deleteCRMRecord = function (id, set) {
-        this.request("DELETE", set + "(" + id + ")");
-    }
-
-    this.updateCRMRecord = function (data, id, set) {
-        this.request("PATCH", set + "(" + id + ")", data);
-    }
-
     this.updateCRMRecordAttribute = function (data, id, set, attName) {
-        this.request("PUT", set + "(" + id + ")/" + attName, data);
-        debugger;
-    }
-
-    this.request = function (action, uri, data, addHeader) {
-        if (!RegExp(action, "g").test("POST PATCH PUT GET DELETE")) { // Expected action verbs.
-            throw new Error("Sdk.request: action parameter must be one of the following: " +
-                "POST, PATCH, PUT, GET, or DELETE.");
-        }
-        if (!typeof uri === "string") {
-            throw new Error("Sdk.request: uri parameter must be a string.");
-        }
-        if ((RegExp(action, "g").test("POST PATCH PUT")) && (!data)) {
-            throw new Error("Sdk.request: data parameter must not be null for operations that create or modify data.");
-        }
-        if (addHeader) {
-            if (typeof addHeader.header != "string" || typeof addHeader.value != "string") {
-                throw new Error("Sdk.request: addHeader parameter must have header and value properties that are strings.");
-            }
-        }
-
-        uri = this.getWebAPIPath() + uri;
-
-        return new Promise(function (resolve, reject) {
-            var request = new XMLHttpRequest();
-            request.open(action, encodeURI(uri), true);
-            request.setRequestHeader("OData-MaxVersion", "4.0");
-            request.setRequestHeader("OData-Version", "4.0");
-            request.setRequestHeader("Accept", "application/json");
-            request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-            if (addHeader) {
-                request.setRequestHeader(addHeader.header, addHeader.value);
-            }
-            request.onreadystatechange = function () {
-                if (this.readyState === 4) {
-                    request.onreadystatechange = null;
-                    switch (this.status) {
-                        case 200: // Operation success with content returned in response body.
-                        case 201: // Create success. 
-                        case 204: // Operation success with no content returned in response body.
-                            resolve(this);
-                            break;
-                        default: // All other statuses are unexpected so are treated like errors.
-                            var error;
-                            try {
-                                error = JSON.parse(request.response).error;
-                            } catch (e) {
-                                error = new Error("Unexpected Error");
-                            }
-                            reject(error);
-                            break;
-                    }
+        var req = new XMLHttpRequest();
+        req.open("PUT", encodeURI(this.getWebAPIPath() + set + "(" + id + ")/" + attName), false);
+        req.setRequestHeader("Accept", "application/json");
+        req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        req.setRequestHeader("OData-MaxVersion", "4.0");
+        req.setRequestHeader("OData-Version", "4.0");
+        req.onreadystatechange = function () {
+            if (this.readyState == 4 /* complete */) {
+                req.onreadystatechange = null;
+                switch (this.status) {
+                    case 200: // Operation success with content returned in response body.
+                    case 201: // Create success. 
+                    case 204: // Operation success with no content returned in response body.
+                        //alert("Updated successfully!");
+                        break;
+                    default: // All other statuses are unexpected so are treated like errors.
+                        var error;
+                        try {
+                            error = JSON.parse(req.response).error;
+                        } catch (e) {
+                            error = new Error("Unexpected Error");
+                        }
+                        throw error;
+                        break;
                 }
-            };
-            request.send(JSON.stringify(data));
-        });
+            }
+        };
+        req.send(JSON.stringify(data));
     }
+
+    this.displayCustomIcon =  function (rowData, userLCID) {
+     var str = JSON.parse(rowData);
+     var coldata = str.nmc_action;
+     var imgName = "";
+     var tooltip = "";
+     switch (coldata) {
+         case "bounce":
+             imgName = "nmc_/icons/bounce.png";
+             tooltip = "Bounce";
+             break;
+         case "send":
+             imgName = "nmc_/icons/send.png";
+             tooltip = "Send";
+             break;
+         case "Subscribe":
+             imgName = "nmc_/icons/Subscribe.png";
+             tooltip = "Subscribe";
+             break;
+         default:
+             imgName = "";
+             tooltip = "";
+             break;
+     }
+     var resultarray = [imgName, tooltip];
+     return resultarray;
+ }
+
 }).call(SanJS.WebAPI);

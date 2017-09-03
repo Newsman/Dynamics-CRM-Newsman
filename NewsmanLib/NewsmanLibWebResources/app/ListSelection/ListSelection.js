@@ -67,6 +67,15 @@ var NMConfigViewModel = function () {
             SanJS.WebAPI.createCRMRecord("nmc_newsmanconfigs", apikeyConfig, null, SanJS.WebAPI.errorHandler);
             self.nmApiKeyLoaded(true);
         }
+        else {
+            //update param
+            var resp = SanJS.WebAPI.getCRMRecordData("nmc_newsmanconfigs", "nmc_value", "nmc_name eq 'ApiKey'");
+            if (resp) {
+                var paramId = resp.nmc_newsmanconfigid;
+                var p = { "value": self.nmApiKey().toString() };
+                SanJS.WebAPI.updateCRMRecordAttribute(p, paramId, "nmc_newsmanconfigs", "nmc_value");
+            }
+        }
 
         if (!self.nmUserIdLoaded()) {
             var useridConfig = {};
@@ -77,8 +86,17 @@ var NMConfigViewModel = function () {
             SanJS.WebAPI.createCRMRecord("nmc_newsmanconfigs", useridConfig, null, SanJS.WebAPI.errorHandler);
             self.nmUserIdLoaded(true);
         }
+        else {
+            //update param
+            var resp = SanJS.WebAPI.getCRMRecordData("nmc_newsmanconfigs", "nmc_value", "nmc_name eq 'UserId'");
+            if (resp) {
+                var paramId = resp.nmc_newsmanconfigid;
+                var p = { "value": self.nmUserId().toString() };
+                SanJS.WebAPI.updateCRMRecordAttribute(p, paramId, "nmc_newsmanconfigs", "nmc_value");
+            }
+        }
 
-        self.nmLoadLists();
+        refreshPage();
     }
 
     self.SaveConfig = function () {
@@ -95,7 +113,7 @@ var NMConfigViewModel = function () {
                 SanJS.WebAPI.updateCRMRecordAttribute(p, paramId, "nmc_newsmanconfigs", "nmc_value");
             }
         }
-        //create if it does not
+            //create if it does not
         else {
             var p = { "nmc_name": "Default List", "nmc_value": self.nmSelectedList() };
             SanJS.WebAPI.createCRMRecord("nmc_newsmanconfigs", p, null, SanJS.WebAPI.errorHandler);
@@ -119,4 +137,13 @@ function retrieveCRMConfiguration() {
     vmInfo.uidConfig = resp ? resp.nmc_value : null;
 
     return vmInfo;
+}
+
+function refreshPage() {
+    // Get the link object to simulate user click
+    var reload = document.getElementById('reload');
+
+    // Assign the modal url to the link then click!
+    reload.href = window.location.href;
+    reload.click();
 }

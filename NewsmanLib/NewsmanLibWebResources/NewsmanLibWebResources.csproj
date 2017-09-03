@@ -127,6 +127,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="resources\es6promise.min.js" />
     <Content Include="resources\jquery321slimmin.js" />
     <Content Include="resources\knockout342min.js" />
     <Content Include="resources\SanJSKit - NewsmanAPI.js" />
