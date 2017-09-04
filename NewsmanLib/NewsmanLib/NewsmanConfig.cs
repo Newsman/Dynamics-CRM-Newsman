@@ -192,6 +192,7 @@ namespace NewsmanLib
                             nmHistoryRec.Attributes["nmc_action"] = record.action;
                             nmHistoryRec.Attributes["nmc_subscriberid"] = record.subscriber_id;
                             nmHistoryRec.Attributes["nmc_timestamp"] = record.timestamp;
+                            nmHistoryRec.Attributes["nmc_linkurl"] = record.url;
                             nmHistoryRec.Attributes["nmc_datetime"] = ConvertTimestamp(record.timestamp);
                             nmHistoryRec.Attributes["nmc_contactid"] = GetEntityReference(helper.OrganizationService, record.email, "contact");
                             nmHistoryRec.Attributes["nmc_newsletterid"] = newsletter;

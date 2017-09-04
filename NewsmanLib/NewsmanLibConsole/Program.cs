@@ -11,7 +11,7 @@ namespace NewsmanLibConsole
 {
     class Program
     {
-        private const string apikey = "dmeo";
+        private const string apikey = "demo";
         private const string userid = "demo";
         private const string defaultList = "demo";
         private static string expand = string.Empty;
@@ -26,11 +26,11 @@ namespace NewsmanLibConsole
 
                 //var newSegment = api.CreateSegment(defaultList, "segment din consola");
 
-                //List<Subscriber> subscribers = new List<Subscriber>();
-                //subscribers.Add(new Subscriber { Email = "abcdee@nubiz.com", Firstname = "abf", Lastname = "cr" });
-                //subscribers.Add(new Subscriber { Email = "bcderr@nubiz.com", Firstname = "bcf", Lastname = "dr" });
-                //subscribers.Add(new Subscriber { Email = "george.calinescu@outlook.com", Firstname = "george", Lastname = "calinescu" });
-                //var resp = api.ImportSubscribers(defaultList, "75031", subscribers);
+                List<Subscriber> subscribers = new List<Subscriber>();
+                subscribers.Add(new Subscriber { Email = "abcdee@nubiz.com", Firstname = "abf", Lastname = "cr" });
+                subscribers.Add(new Subscriber { Email = "bcderr@nubiz.com", Firstname = "bcf", Lastname = "dr" });
+                subscribers.Add(new Subscriber { Email = "george.calinescu@outlook.com", Firstname = "george", Lastname = "calinescu" });
+                //var resp = api.ImportSubscribers(defaultList, "65399", subscribers);
 
                 //var status = api.ImportStatus(resp.Replace("\"", ""));
                 //DateTimeOffset.UtcNow.Ticks.ToString() 
@@ -48,11 +48,16 @@ namespace NewsmanLibConsole
 
             //crm connection
             CrmServiceClient conn = new CrmServiceClient("connection string");
-
+            
             // Cast the proxy client to the IOrganizationService interface.
             IOrganizationService service = conn.OrganizationWebProxyClient != null ? 
                 (IOrganizationService)conn.OrganizationWebProxyClient : 
                 (IOrganizationService)conn.OrganizationServiceProxy;
+
+            Entity nmHistoryRec = new Entity("nmc_newsmanhistory");
+            nmHistoryRec.Attributes["nmc_action"] = "click";
+            nmHistoryRec.Attributes["nmc_linkurl"] = "www.google.com";
+            service.Create(nmHistoryRec);
 
             //initialize duplicate detection collection
             EntityCollection crtRecords = RetrieveAllCurrentHistory(service);
@@ -60,7 +65,7 @@ namespace NewsmanLibConsole
             double dblTimestamp = 1504127167.2155;
             double crtTimestamp = 0;
             List<ListHistory> list = api.RetrieveListHistory(defaultList, pageSize, "0");
-
+            
             List<string> contactslist = new List<string>();
             DateTime startProcessingTime = DateTime.Now;
             double failTimestamps = 0;

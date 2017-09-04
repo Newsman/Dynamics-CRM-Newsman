@@ -23,7 +23,11 @@ namespace NewsmanLib
                     string nmList = Common.GetParamValue(helper.OrganizationService, "Default List");
 
                     if (apikey == null || userid == null || nmList == null)
+                    {
+                        Common.LogToCRM(helper.OrganizationService, $"Creating new segment for {(string)entity["listname"]}: missing configuration parameters", 
+                            "-");
                         return;
+                    }
                     #endregion
 
                     NewsmanAPI api = new NewsmanAPI(apikey, userid);

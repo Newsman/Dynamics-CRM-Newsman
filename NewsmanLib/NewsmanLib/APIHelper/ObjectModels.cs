@@ -57,6 +57,8 @@ namespace NewsmanLib.APIHelper
         [DataMember]
         public string newsletter_subject { get; set; }
         [DataMember]
+        public string url { get; set; }
+        [DataMember]
         public string date { get; set; }
         [DataMember]
         public string action { get; set; }
