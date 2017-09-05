@@ -194,7 +194,7 @@ namespace NewsmanLib
                             nmHistoryRec.Attributes["nmc_timestamp"] = record.timestamp;
                             nmHistoryRec.Attributes["nmc_linkurl"] = record.url;
                             nmHistoryRec.Attributes["nmc_datetime"] = ConvertTimestamp(record.timestamp);
-                            nmHistoryRec.Attributes["nmc_contactid"] = GetEntityReference(helper.OrganizationService, record.email, "contact");
+                            nmHistoryRec.Attributes["nmc_customerid"] = GetEntityReference(helper.OrganizationService, record.email);
                             nmHistoryRec.Attributes["nmc_newsletterid"] = newsletter;
 
                             helper.OrganizationService.Create(nmHistoryRec);
@@ -292,6 +292,32 @@ namespace NewsmanLib
             Entity lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
             if (lk != null)
                 lookup = lk.ToEntityReference();
+
+            return lookup;
+        }
+
+        private EntityReference GetEntityReference(IOrganizationService service, string searchField)
+        {
+            EntityReference lookup = null;
+            QueryByAttribute qry = new QueryByAttribute("account");
+            qry.ColumnSet = new ColumnSet();
+            qry.TopCount = 1;
+            qry.AddAttributeValue("emailaddress1", searchField);
+
+            Entity lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
+            if (lk != null)
+                return lk.ToEntityReference();
+            else
+            {
+                qry = new QueryByAttribute("contact");
+                qry.ColumnSet = new ColumnSet();
+                qry.TopCount = 1;
+                qry.AddAttributeValue("emailaddress1", searchField);
+
+                lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
+                if (lk != null)
+                    return lk.ToEntityReference();
+            }
 
             return lookup;
         }
