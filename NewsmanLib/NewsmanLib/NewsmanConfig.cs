@@ -299,20 +299,26 @@ namespace NewsmanLib
         private EntityReference GetEntityReference(IOrganizationService service, string searchField)
         {
             EntityReference lookup = null;
-            QueryByAttribute qry = new QueryByAttribute("account");
+            QueryExpression qry = new QueryExpression("account");
             qry.ColumnSet = new ColumnSet();
             qry.TopCount = 1;
-            qry.AddAttributeValue("emailaddress1", searchField);
+            qry.Criteria = new FilterExpression(LogicalOperator.Or);
+            qry.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, searchField);
+            qry.Criteria.AddCondition("emailaddress2", ConditionOperator.Equal, searchField);
+            qry.Criteria.AddCondition("emailaddress3", ConditionOperator.Equal, searchField);
 
             Entity lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
             if (lk != null)
                 return lk.ToEntityReference();
             else
             {
-                qry = new QueryByAttribute("contact");
+                qry = new QueryExpression("contact");
                 qry.ColumnSet = new ColumnSet();
                 qry.TopCount = 1;
-                qry.AddAttributeValue("emailaddress1", searchField);
+                qry.Criteria = new FilterExpression(LogicalOperator.Or);
+                qry.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, searchField);
+                qry.Criteria.AddCondition("emailaddress2", ConditionOperator.Equal, searchField);
+                qry.Criteria.AddCondition("emailaddress3", ConditionOperator.Equal, searchField);
 
                 lk = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
                 if (lk != null)
