@@ -17,7 +17,18 @@ namespace NewsmanLib.APIHelper
 
         public string Lastname
         { get; set; }
+    }
 
+    public class DuplicateSubscriber
+    {
+        public string Subscriber
+        { get; set; }
+
+        public string Action
+        { get; set; }
+
+        public string Timestamp
+        { get; set; }
     }
 
     public class MarketingListInfo

@@ -140,7 +140,14 @@ namespace NewsmanLib
                     $"Current last timestamp is {dblTimestamp}");
 
                 //initialize duplicate detection collection
-                EntityCollection crtRecords = RetrieveAllCurrentHistory(helper.OrganizationService);
+                EntityCollection crtCRMRecords = RetrieveAllCurrentHistory(helper.OrganizationService);
+                IEnumerable<DuplicateSubscriber> crtRecords = crtCRMRecords.Entities.Where(i => i.Contains("nmc_subscriberid") && i.Contains("nmc_action") && i.Contains("nmc_timestamp")).
+                    Select(s => new DuplicateSubscriber()
+                    {
+                        Subscriber = (string)s["nmc_subscriberid"],
+                        Action = (string)s["nmc_action"],
+                        Timestamp = (string)s["nmc_timestamp"]
+                    });
 
                 try
                 {
@@ -194,6 +201,7 @@ namespace NewsmanLib
                             nmHistoryRec.Attributes["nmc_timestamp"] = record.timestamp;
                             nmHistoryRec.Attributes["nmc_linkurl"] = record.url;
                             nmHistoryRec.Attributes["nmc_datetime"] = ConvertTimestamp(record.timestamp);
+                            nmHistoryRec.Attributes["nmc_emailused"] = record.email;
                             nmHistoryRec.Attributes["nmc_customerid"] = GetEntityReference(helper.OrganizationService, record.email);
                             nmHistoryRec.Attributes["nmc_newsletterid"] = newsletter;
 
@@ -238,6 +246,11 @@ namespace NewsmanLib
             return list.Entities.Any(i => (i.Contains("nmc_subscriberid") && (string)i["nmc_subscriberid"] == item.subscriber_id) &&
                 (i.Contains("nmc_action") && (string)i["nmc_action"] == item.action) &&
                 (i.Contains("nmc_timestamp") && (string)i["nmc_timestamp"] == item.timestamp));
+        }
+
+        private bool RecordExists(IEnumerable<DuplicateSubscriber> list, ListHistory item)
+        {
+            return list.Any(s => s.Subscriber == item.subscriber_id && s.Action == item.action && s.Timestamp == item.timestamp);
         }
 
         private EntityCollection RetrieveAllCurrentHistory(IOrganizationService service)

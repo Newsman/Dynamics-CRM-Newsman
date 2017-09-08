@@ -77,11 +77,11 @@ namespace NewsmanLib
                         switch (memberType)
                         {
                             case "account":
-                                cols = new ColumnSet("name", "emailaddress1");
+                                cols = new ColumnSet("name", "emailaddress1", "emailaddress2", "emailaddress3");
                                 break;
                             case "contact":
                             case "lead":
-                                cols = new ColumnSet("firstname", "lastname", "emailaddress1");
+                                cols = new ColumnSet("firstname", "lastname", "emailaddress1", "emailaddress2", "emailaddress3");
                                 break;
                             default:
                                 cols = new ColumnSet(false);

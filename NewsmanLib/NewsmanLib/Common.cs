@@ -91,16 +91,28 @@ namespace NewsmanLib
             {
                 if (member.Contains("emailaddress1"))
                 {
-                    sub.Add(new Subscriber()
-                    {
-                        Email = member["emailaddress1"].ToString(),
-                        Firstname = member.Contains("firstname") ? member["firstname"].ToString() : "",
-                        Lastname = member.Contains("lastname") ? member["lastname"].ToString() : member.Contains("name") ? member["name"].ToString() : ""
-                    });
+                    sub.Add(EntityToSubscriber(member, "emailaddress1"));
+                }
+                if (member.Contains("emailaddress2"))
+                {
+                    sub.Add(EntityToSubscriber(member, "emailaddress2"));
+                }
+                if (member.Contains("emailaddress3"))
+                {
+                    sub.Add(EntityToSubscriber(member, "emailaddress3"));
                 }
             }
 
             return sub;
+        }
+
+        private static Subscriber EntityToSubscriber(Entity member, string emailField)
+        {
+            return new Subscriber() {
+                Email = member[emailField].ToString(),
+                Firstname = member.Contains("firstname") ? member["firstname"].ToString() : "",
+                Lastname = member.Contains("lastname") ? member["lastname"].ToString() : member.Contains("name") ? member["name"].ToString() : ""
+            };
         }
 
         public static Subscriber[] CreateSubscribers(IOrganizationService service, Guid[] memberIds, string memberType)
