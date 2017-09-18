@@ -4,7 +4,7 @@ Newsman integration module for Microsoft Dymamics CRM (365 / on premise)
 # Installing, configuring and using the connector
 
 ## Download
-Download the zip file from [NewsmanSync_1_1_0_4_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_1_0_4_managed.zip).
+Download the zip file from [NewsmanSync_1_1_0_5_managed.zip](https://github.com/Newsman/Dynamics-CRM-Newsman/raw/master/NewsmanSync_1_1_0_5_managed.zip).
 
 ## Installation
 
@@ -29,6 +29,9 @@ Keep the check for the SDK messages:
 At the end of the import, you'll see this dialog:
 
   ![Imported](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/NewsmanLib/Pics/imported.png)
+  
+Display Newsman Connector custom entities in the sitemap:
+  ![Customize](https://github.com/Newsman/Dynamics-CRM-Newsman/blob/master/Display%20Newsman%20Connector%20entities%20in%20the%20Sitemap.doc)
 
 ## Configuration
 
