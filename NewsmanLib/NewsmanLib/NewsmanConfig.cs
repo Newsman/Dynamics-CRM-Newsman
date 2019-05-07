@@ -12,6 +12,10 @@ namespace NewsmanLib
 {
     public class NewsmanConfig : PluginBase
     {
+        #region Properties
+        private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        #endregion
+
         #region Overrides
         public override void PostCreate(Entity entity, ConnectionHelper helper)
         {
@@ -105,19 +109,19 @@ namespace NewsmanLib
 
         public override void PostUpdate(Entity entity, ConnectionHelper helper)
         {
-            //initialize process timer
             DateTime startProcessingTime = DateTime.Now;
-            int totalSeconds = 110;
-            int nmcPageCount = 1000;
-
             Entity image = helper.PluginExecutionContext.PostEntityImages.Contains("Image") ?
-                helper.PluginExecutionContext.PostEntityImages["Image"] : entity;
-
+                    helper.PluginExecutionContext.PostEntityImages["Image"] : entity;
             string name = (string)image.GetValue("nmc_name", image);
 
             #region Retrieve history
             if (entity.Contains("nmc_nextrunon") && name == "ApiKey")
             {
+                //initialization
+                int totalSeconds = 100;
+                int nmcPageCount = 100;
+                Guid LastTimestampID = InitializeTimestamp(helper.OrganizationService);
+
                 #region check config params
                 string apikey = Common.GetParamValue(helper.OrganizationService, "ApiKey");
                 string userid = Common.GetParamValue(helper.OrganizationService, "UserId");
@@ -134,10 +138,9 @@ namespace NewsmanLib
                 NewsmanAPI nmapi = new NewsmanAPI(apikey, userid);
 
                 //retrieve last history timestamp
-                string lastTimestamp = RetrieveLastTimestamp(helper.OrganizationService);
-                double dblTimestamp = lastTimestamp != null ? Convert.ToDouble(lastTimestamp) : (double)0;
-                Common.LogToCRM(helper.OrganizationService, $"Attempting history retrieve with list_id {defaultList}, count {nmcPageCount} and timestamp {0}",
-                    $"Current last timestamp is {dblTimestamp}");
+                string lastTimestamp = RetrieveLastTimestamp(helper.OrganizationService, LastTimestampID);
+                Common.LogToCRM(helper.OrganizationService, $"Attempting history retrieve with list_id {defaultList}, count {nmcPageCount} and timestamp {lastTimestamp}",
+                    $"Current last timestamp is {lastTimestamp}");
 
                 //initialize duplicate detection collection
                 EntityCollection crtCRMRecords = RetrieveAllCurrentHistory(helper.OrganizationService);
@@ -152,29 +155,31 @@ namespace NewsmanLib
                 try
                 {
                     //first page
-                    var history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, "0");
-                    double crtTimestamp = 0;
+                    var history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, lastTimestamp).ToArray();
+                    string crtTimestamp = string.Empty;
 
                     while (true)
                     {
                         //break loop when no other records are returned
-                        if (history.Count == 0)
+                        if (history.Length == 0)
                             break;
 
-                        for (int i = 0; i < history.Count; i++)
-                        {
-                            #region Check timer
-                            //break loop before CRM plugin times out
-                            if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
-                                break;
-                            #endregion
+                        //save checkpoint for the next history retrieval
+                        crtTimestamp = history.Min(h => h.timestamp);
 
+                        #region Check timer
+                        //break loop before CRM plugin times out
+                        if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
+                        {
+                            Common.LogToCRM(helper.OrganizationService, "History records creating loop break caused by forced timeout", null);
+                            break;
+                        }
+                        #endregion
+
+                        for (int i = 0; i < history.Length; i++)
+                        {
                             //get next record
                             var record = history[i];
-
-                            //save checkpoint for the next history retrieval
-                            crtTimestamp = Convert.ToDouble(history[i].timestamp);
-
                             if (RecordExists(crtRecords, record))
                                 continue;
 
@@ -200,47 +205,71 @@ namespace NewsmanLib
                             nmHistoryRec.Attributes["nmc_subscriberid"] = record.subscriber_id;
                             nmHistoryRec.Attributes["nmc_timestamp"] = record.timestamp;
                             nmHistoryRec.Attributes["nmc_linkurl"] = record.url;
-                            nmHistoryRec.Attributes["nmc_datetime"] = ConvertTimestamp(record.timestamp);
+                            nmHistoryRec.Attributes["nmc_datetime"] = DatetimeFromTimestamp(record.timestamp);
                             nmHistoryRec.Attributes["nmc_emailused"] = record.email;
                             nmHistoryRec.Attributes["nmc_customerid"] = GetEntityReference(helper.OrganizationService, record.email);
                             nmHistoryRec.Attributes["nmc_newsletterid"] = newsletter;
 
                             helper.OrganizationService.Create(nmHistoryRec);
                             #endregion
-
-                            #region Check timer
-                            //break loop before CRM plugin times out
-                            if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
-                                break;
-                            #endregion
                         }
 
+                        UpdateLastTimestamp(helper.OrganizationService, LastTimestampID, crtTimestamp);
 
                         #region Check timer
                         //break loop before CRM plugin times out
                         if (DateTime.Now.Subtract(startProcessingTime).TotalSeconds > totalSeconds)
                         {
-                            Common.LogToCRM(helper.OrganizationService, "History records creating loop break caused by forced timeout",
-                                $"Last processed timestamp is: {crtTimestamp}");
+                            Common.LogToCRM(helper.OrganizationService, "History records creating loop break caused by forced timeout", null);
                             break;
                         }
                         #endregion
 
-                        //next pages
-                        history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, crtTimestamp.ToString());
+                        //next page
+                        history = nmapi.RetrieveListHistory(defaultList, nmcPageCount, crtTimestamp).ToArray();
                     }
                 }
                 catch (Exception e)
                 {
-                    Common.LogToCRM(helper.OrganizationService, "Exception creating history records", e.Message + " // " + e.StackTrace);
+                    Common.LogToCRM(helper.OrganizationService, "Exception creating history records", e.ToString());
                 }
             }
             #endregion
         }
 
+
+
         #endregion
 
         #region Methods
+        private Guid InitializeTimestamp(IOrganizationService service)
+        {
+            Guid nmcLT = Guid.Empty;
+
+            QueryExpression qryLT = new QueryExpression("nmc_newsmanconfig");
+            qryLT.NoLock = true;
+            qryLT.ColumnSet = new ColumnSet();
+            qryLT.Criteria.AddCondition("nmc_name", ConditionOperator.Equal, "Last Timestamp");
+            qryLT.TopCount = 1;
+
+            EntityCollection ltResults = service.RetrieveMultiple(qryLT);
+
+            if (ltResults.Entities.Count > 0)
+            {
+                nmcLT = ltResults[0].Id;
+            }
+            else
+            {
+                Entity lastTimestampValue = new Entity("nmc_newsmanconfig");
+                lastTimestampValue.Attributes["nmc_name"] = "Last Timestamp";
+                lastTimestampValue.Attributes["nmc_value"] = "0";
+
+                nmcLT = service.Create(lastTimestampValue);
+            }
+
+            return nmcLT;
+        }
+
         private bool RecordExists(EntityCollection list, ListHistory item)
         {
             return list.Entities.Any(i => (i.Contains("nmc_subscriberid") && (string)i["nmc_subscriberid"] == item.subscriber_id) &&
@@ -260,7 +289,7 @@ namespace NewsmanLib
             QueryExpression qry = new QueryExpression("nmc_newsmanhistory");
             qry.NoLock = true;
             qry.ColumnSet = new ColumnSet("nmc_subscriberid", "nmc_action", "nmc_timestamp");
-            qry.Criteria.AddCondition("nmc_datetime", ConditionOperator.Last7Days);
+            qry.Criteria.AddCondition("nmc_datetime", ConditionOperator.LastXDays, 5);
             qry.PageInfo = new PagingInfo();
             qry.PageInfo.Count = 5000;
             qry.PageInfo.PageNumber = 1;
@@ -315,6 +344,7 @@ namespace NewsmanLib
             QueryExpression qry = new QueryExpression("account");
             qry.ColumnSet = new ColumnSet();
             qry.TopCount = 1;
+            qry.NoLock = true;
             qry.Criteria = new FilterExpression(LogicalOperator.Or);
             qry.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, searchField);
             qry.Criteria.AddCondition("emailaddress2", ConditionOperator.Equal, searchField);
@@ -328,6 +358,7 @@ namespace NewsmanLib
                 qry = new QueryExpression("contact");
                 qry.ColumnSet = new ColumnSet();
                 qry.TopCount = 1;
+                qry.NoLock = true;
                 qry.Criteria = new FilterExpression(LogicalOperator.Or);
                 qry.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, searchField);
                 qry.Criteria.AddCondition("emailaddress2", ConditionOperator.Equal, searchField);
@@ -341,26 +372,51 @@ namespace NewsmanLib
             return lookup;
         }
 
-        private DateTime ConvertTimestamp(string timestamp)
+        private DateTime DatetimeFromTimestamp(string timestamp)
         {
             double dTimeStamp = Convert.ToDouble(timestamp);
-            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            return dtDateTime.AddSeconds(dTimeStamp);
+            return Epoch.AddSeconds(dTimeStamp);
         }
 
-        private string RetrieveLastTimestamp(IOrganizationService service)
+        private double TimestampFromDatetime(DateTime dt)
         {
-            QueryExpression qry = new QueryExpression("nmc_newsmanhistory");
-            qry.ColumnSet = new ColumnSet("nmc_timestamp");
-            qry.Orders.Add(new OrderExpression("nmc_timestamp", OrderType.Ascending));
-            qry.TopCount = 1;
-            Entity last = service.RetrieveMultiple(qry).Entities.FirstOrDefault();
-            if (last != null && last.Contains("nmc_timestamp"))
+            TimeSpan ts = dt - Epoch;
+            return ts.TotalSeconds;
+        }
+
+        private string RetrieveLastTimestamp(IOrganizationService service, Guid LTID)
+        {
+            Entity LTConfig = service.Retrieve("nmc_newsmanconfig", LTID, new ColumnSet("nmc_value"));
+            string lastTimestamp = string.Empty;
+
+            if (LTConfig != null && LTConfig.Contains("nmc_value"))
             {
-                return last["nmc_timestamp"].ToString();
+                lastTimestamp = LTConfig["nmc_value"].ToString();
+
+                if (DatetimeFromTimestamp(lastTimestamp) < DateTime.Today.AddDays(-1))
+                {
+                    return "0";
+                }
+                else
+                    return lastTimestamp;
             }
 
-            return null;
+            return "0";
+        }
+
+        private void UpdateLastTimestamp(IOrganizationService service, Guid LTID, string ltValue)
+        {
+            try
+            {
+                Entity upLast = new Entity("nmc_newsmanconfig");
+                upLast.Id = LTID;
+                upLast.Attributes["nmc_value"] = ltValue;
+                service.Update(upLast);
+            }
+            catch (Exception e)
+            {
+                Common.LogToCRM(service, "Failed updating last timestamp", e.ToString());
+            }
         }
         #endregion
     }

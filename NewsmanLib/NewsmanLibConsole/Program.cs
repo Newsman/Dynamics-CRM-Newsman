@@ -4,6 +4,7 @@ using Microsoft.Xrm.Tooling.Connector;
 using NewsmanLib.APIHelper;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 
@@ -18,6 +19,58 @@ namespace NewsmanLibConsole
 
         static void Main(string[] args)
         {
+            #region test timestamp
+            string mm = "1.";
+            try
+            {
+                string connstring = ConfigurationManager.AppSettings["ConnString"];
+                //Console.WriteLine("CONNSTRING: "+ connstring);
+
+
+                CrmServiceClient conn = new CrmServiceClient(connstring);
+
+
+
+                IOrganizationService service = conn.OrganizationWebProxyClient != null ?
+                    (IOrganizationService)conn.OrganizationWebProxyClient :
+                    (IOrganizationService)conn.OrganizationServiceProxy;
+
+                mm += "2.";
+                QueryExpression qry = new QueryExpression("nmc_newsmanhistory");
+                qry.ColumnSet = new ColumnSet("nmc_timestamp");
+                qry.Orders.Add(new OrderExpression("nmc_timestamp", OrderType.Ascending));
+                qry.NoLock = true;
+                qry.TopCount = 1;
+                mm += "3.";
+
+                if(service == null)
+                {
+                    Console.WriteLine($"SERVICE E NULL!");
+                    
+                }
+
+                EntityCollection results = service.RetrieveMultiple(qry);
+
+                Entity last = results.Entities.FirstOrDefault();
+                mm += "4.";
+
+                Console.WriteLine($"CONECTAT LA CRM SI CITIT TIMESTAMP");
+                mm += "5.";
+                if (last != null && last.Contains("nmc_timestamp"))
+                {
+                    Console.WriteLine($"TIMESTAMP CRM {last["nmc_timestamp"].ToString()}");
+                }
+
+                Console.ReadKey();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Eroare la conexiunea CRM: {e.Message}; PAS: {mm}");
+            }
+            return;
+            #endregion
+
+
             using (NewsmanAPI api = new NewsmanAPI(apikey, userid))
             {
                 #region commented
