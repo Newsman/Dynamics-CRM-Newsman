@@ -152,6 +152,8 @@ namespace NewsmanLib
                         Timestamp = (string)s["nmc_timestamp"]
                     });
 
+                ICollection<DuplicateSubscriber> crtColl = crtRecords.ToList();
+
                 try
                 {
                     //first page
@@ -185,7 +187,7 @@ namespace NewsmanLib
                         {
                             //get next record
                             var record = history[i];
-                            if (RecordExists(crtRecords, record))
+                            if (RecordExists(crtColl, record))
                                 continue;
 
                             #region Newsletter information
@@ -217,6 +219,9 @@ namespace NewsmanLib
 
                             helper.OrganizationService.Create(nmHistoryRec);
                             #endregion
+
+                            //extend the collection
+                            crtColl.Add(new DuplicateSubscriber() { Action = record.action, Subscriber = record.subscriber_id, Timestamp = record.timestamp });
                         }
 
                         UpdateLastTimestamp(helper.OrganizationService, LastTimestampID, crtTimestamp);
