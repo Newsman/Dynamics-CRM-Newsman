@@ -162,7 +162,12 @@ namespace NewsmanLib
                     {
                         //break loop when no other records are returned
                         if (history.Length == 0)
+                        {
+                            //reset  timestamp
+                            ResetTimestamp(helper.OrganizationService, LastTimestampID);
+
                             break;
+                        }
 
                         //save checkpoint for the next history retrieval
                         crtTimestamp = history.Min(h => h.timestamp);
@@ -268,6 +273,22 @@ namespace NewsmanLib
             }
 
             return nmcLT;
+        }
+
+        private void ResetTimestamp(IOrganizationService service, Guid TSGuid)
+        {
+            try
+            {
+                Entity lastTimestampValue = new Entity("nmc_newsmanconfig");
+                lastTimestampValue.Id = TSGuid;
+                lastTimestampValue.Attributes["nmc_value"] = "0";
+
+                service.Update(lastTimestampValue);
+            }
+            catch (Exception e)
+            {
+                Common.LogToCRM(service, "Error reseting timestamp value", e.ToString());
+            }
         }
 
         private bool RecordExists(EntityCollection list, ListHistory item)
